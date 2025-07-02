@@ -43,7 +43,7 @@ def get():
         ts = dt.datetime.min
         if time is not None:
             ts = dt.datetime.fromisoformat(time)
-        ts = ts.astimezone().replace(tzinfo=None)
+            ts = ts.astimezone().replace(tzinfo=None)
         if ts < save_time:
             print(f"Sending data to {request.remote_addr}")
             return {'data': save_data, 'time': save_time.isoformat()}, 200
