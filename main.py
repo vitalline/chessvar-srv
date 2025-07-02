@@ -42,7 +42,8 @@ def get():
         time = json_data.get('time', None)
         ts = dt.datetime.now()
         if time is not None:
-            ts = dt.datetime.fromisoformat(time).astimezone()
+            ts = dt.datetime.fromisoformat(time)
+        ts = ts.astimezone().replace(tzinfo=None)
         if ts < save_time:
             return {'data': save_data, 'time': save_time.isoformat()}, 200
         else:
@@ -67,7 +68,8 @@ def post():
         time = json_data.get('time', None)
         ts = dt.datetime.now()
         if time is not None:
-            ts = dt.datetime.fromisoformat(time).astimezone()
+            ts = dt.datetime.fromisoformat(time)
+        ts = ts.astimezone().replace(tzinfo=None)
         if ts > save_time:
             save_lock.acquire()
             save_data = data
