@@ -45,6 +45,7 @@ def get():
             ts = dt.datetime.fromisoformat(time)
         ts = ts.astimezone().replace(tzinfo=None)
         if ts < save_time:
+            print(f"Sending data to {request.remote_addr}")
             return {'data': save_data, 'time': save_time.isoformat()}, 200
         else:
             return {'data': None, 'time': save_time.isoformat()}, 200
@@ -71,6 +72,7 @@ def post():
             ts = dt.datetime.fromisoformat(time)
         ts = ts.astimezone().replace(tzinfo=None)
         if ts > save_time:
+            print(f"Storing data from {request.remote_addr}")
             save_lock.acquire()
             save_data = data
             save_time = ts
