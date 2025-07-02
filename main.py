@@ -40,7 +40,7 @@ def get():
         json_data = request.get_json()
         check_data(json_data)
         time = json_data.get('time', None)
-        ts = dt.datetime.now()
+        ts = dt.datetime.min
         if time is not None:
             ts = dt.datetime.fromisoformat(time)
         ts = ts.astimezone().replace(tzinfo=None)
