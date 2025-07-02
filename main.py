@@ -36,6 +36,7 @@ def check_data(json_data, fields: Collection[str | tuple[str, type]] = ()):
 @app.get('/')
 def get():
     try:
+        print(f"GET request received from {request.remote_addr}")
         json_data = request.get_json()
         check_data(json_data)
         time = json_data.get('time', None)
@@ -58,6 +59,7 @@ def get():
 def post():
     global save_data, save_time
     try:
+        print(f"POST request received from {request.remote_addr}")
         saved = False
         json_data = request.get_json()
         check_data(json_data, ('data',))
@@ -84,6 +86,7 @@ def post():
 
 
 if __name__ == '__main__':
+    print(f"Listening on {DEFAULT_HOST}:{DEFAULT_PORT}")
     serve(
         app,
         listen=f"{DEFAULT_HOST}:{DEFAULT_PORT}",
