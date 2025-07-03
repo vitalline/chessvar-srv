@@ -43,26 +43,32 @@ def get():
         ts = dt.datetime.min
         if time is not None:
             ts = dt.datetime.fromisoformat(time)
-            ts = ts.astimezone().replace(tzinfo=None)
-        if ts < save_time:
-            print(f"Sending data to {request.remote_addr}")
-            return {'data': save_data, 'time': save_time.isoformat()}, 200
-        else:
-            return {'data': None, 'time': save_time.isoformat()}, 200
+            ts = ts.astimezone(dt.UTC).replace(tzinfo=None)
+        with save_lock:
+            data = None
+            if ts < save_time:
+                print(f"Sending data to {request.remote_addr}")
+                data = save_data
+            return {
+                'data': data,
+                'time': save_time.replace(tzinfo=dt.UTC).isoformat(),
+            }, 200
     except HTTPException as e:
         print(f"HTTP Exception: {e}")
-        return {'error': str(e)}, e.code
+        return {
+            'error': str(e),
+        }, e.code
     except Exception as e:
         print(f"Error getting data: {e}")
-        return {'error': str(e)}, 500
+        return {
+            'error': str(e),
+        }, 500
 
 
 @app.post('/')
 def post():
-    global save_data, save_time
     try:
         print(f"POST request received from {request.remote_addr}")
-        saved = False
         json_data = request.get_json()
         check_data(json_data, ('data',))
         data = json_data.get('data', {})
@@ -70,23 +76,29 @@ def post():
         ts = dt.datetime.now()
         if time is not None:
             ts = dt.datetime.fromisoformat(time)
-        ts = ts.astimezone().replace(tzinfo=None)
-        if ts > save_time:
-            print(f"Storing data from {request.remote_addr}")
-            save_lock.acquire()
-            save_data = data
-            save_time = ts
-            saved = True
-            save_lock.release()
-        return {'saved': saved, 'time': ts.isoformat()}, 200
+        ts = ts.astimezone(dt.UTC).replace(tzinfo=None)
+        with save_lock:
+            saved = False
+            global save_data, save_time
+            if ts > save_time:
+                print(f"Storing data from {request.remote_addr}")
+                save_data = data
+                save_time = ts
+                saved = True
+            return {
+                'saved': saved,
+                'time': save_time.replace(tzinfo=dt.UTC).isoformat(),
+            }, 200
     except HTTPException as e:
-        save_lock.release()
         print(f"HTTP Exception: {e}")
-        return {'error': str(e)}, e.code
+        return {
+            'error': str(e),
+        }, e.code
     except Exception as e:
-        save_lock.release()
         print(f"Error storing data: {e}")
-        return {'error': str(e)}, 500
+        return {
+            'error': str(e),
+        }, 500
 
 
 if __name__ == '__main__':
